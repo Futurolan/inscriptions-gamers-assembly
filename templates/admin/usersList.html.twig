@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="float-right">
+        <a class="btn btn-primary mb-2" href="{{ path('adminNewUserPage') }}" role="button">Ajouter</a>
+    </div>
+    <h1 class="mb-4">Utilisateurs</h1>
+    <div class="row mt-4">
+        {% for user in users %}
+            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                <div class="card border-dark mb-3 mx-4 mx-sm-3 mx-md-0">
+                    {% if user.pictureUrl is empty %}
+                        <img src="{{ asset('images/defaultProfilPicture.png') }}" class="card-img-top" alt="...">
+                    {% else %}
+                        <img src="{{ user.pictureUrl }}" class="card-img-top" alt="...">
+                    {% endif %}
+                    <div class="card-header text-white bg-primary">{{ user.name }}</div>
+                    <div class="card-body">
+                        <p class="card-subtitle"><small>{{ user.email }}</small></p>
+{#                        <p class="card-subtitle">{{ user.readableRoles|join(', ', ' et ') }}</p>#}
+                        {% for role in user.readableRoles %}
+                            <span class="badge badge-primary">{{role}}</span>
+                        {% endfor %}
+                        {% if '@futurolan.net' in user.email %}
+                            <span class="badge badge-success">FuturoLAN</span>
+                        {% elseif '@eslgaming.com' in user.email %}
+                            <span class="badge badge-warning">ESL</span>
+                        {% else %}
+                            <span class="badge badge-danger">Externe</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer text-right">
+                        {% if 'ROLE_SUPER_ADMIN' not in user.roles and 'ROLE_ADMIN' not in user.roles %}
+                            <a href="{{ path('adminUserAclPage', {'id': user.id}) }}" class="btn btn-primary">Droits d'accès</a>
+                        {% endif %}
+                        <a href="{{ path('adminEditUserPage', {'id': user.id}) }}" class="btn btn-primary">Édition</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

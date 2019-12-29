@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1 class="mb-4">Nouveau Badge</h1>
+    {{ form_start(badgeForm, {'attr': {'novalidate': 'novalidate'}}) }}
+        <div class="row mb-5">
+            <div class="d-none">
+                {{ form_row(badgeForm.eventID) }}
+            </div>
+            <div class="col-12">
+                {{ form_row(badgeForm.ticketID) }}
+            </div>
+            <div class="col-12 col-md-6">
+                {{ form_row(badgeForm.prenom) }}
+            </div>
+            <div class="col-12 col-md-6">
+                {{ form_row(badgeForm.nom) }}
+            </div>
+            <div class="col-12 col-md-6">
+                {{ form_row(badgeForm.pseudo) }}
+            </div>
+            <div class="col-12 col-md-6">
+                {{ form_row(badgeForm.email) }}
+            </div>
+            <div class="col-12 col-md-6">
+                {{ form_row(badgeForm.societe) }}
+            </div>
+            <div class="col-12 col-md-6">
+                {{ form_row(badgeForm.fonction) }}
+            </div>
+            <div class="col-12">
+                {{ form_row(badgeForm.notify) }}
+            </div>
+            <div class="col-12 my-3">
+                <button type="submit" class="btn btn-primary" formnovalidate>Créer le badge</button>
+            </div>
+        </div>
+    {{ form_end(badgeForm) }}
+{% endblock %}

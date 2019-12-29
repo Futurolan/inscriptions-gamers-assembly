@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+        <title>{% block title %}Inscriptions Gamers Assembly{% endblock %}</title>
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+        <script defer src="https://use.fontawesome.com/releases/v5.8.1/js/all.js" integrity="sha384-g5uSoOSBd7KkhAMlnQILrecXvzst9TdC09/VM+pjDTCM+1il8RHz5fKANTFFb+gQ" crossorigin="anonymous"></script>
+        <style>
+            .mainContainer{flex: 1 0 auto;}
+        </style>
+        {% block stylesheets %}{% endblock %}
+    </head>
+    <body class="d-flex flex-column min-vh-100">
+        <div class="container-fluid d-flex h-100 px-0">
+            <main class="d-flex flex-column px-0 w-100" role="main">
+                <nav class="navbar navbar-dark bg-primary navbar-expand-lg">
+                    <a class="navbar-brand" href="{{ path('homePage') }}">
+                        <i class="fas fa-id-badge"></i>
+                        Inscriptions Gamers Assembly
+                    </a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav mr-auto">
+                        {% block navBarBlock %}
+                            {{ render(controller('App\\Controller\\MenuController::dynamicMenu', {})) }}
+
+                        {% endblock %}
+                        {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('logoutPage') }}">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Déconnexion
+                                </a>
+                            </li>
+                        {% endif %}
+                        </ul>
+                        {% block loggedInBlock %}{% endblock %}
+                    </div>
+                </nav>
+
+                {% for message in app.session.flashBag.get('success') %}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+
+                {% for message in app.session.flashBag.get('error') %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+
+                <div class="flex-row d-flex p-1 p-md-5 mainContainer">
+                    <div class="container-fluid px-0">
+                        {% block body %}{% endblock %}
+                    </div>
+                </div>
+            </main>
+        </div>
+        <footer class="footer mt-auto">
+            <div class="container-fluid text-center">
+                <span class="text-muted">{{ footer_text }}</span>
+            </div>
+        </footer>
+
+        <script>
+            $(function () {
+                setTimeout(function () { $('.alert-dismissible').fadeOut("fast"); }, 4000);
+            });
+        </script>
+        {% block javascripts %}{% endblock %}
+    </body>
+</html>

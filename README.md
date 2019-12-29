@@ -13,13 +13,13 @@ Requirements
 Installation / Update
 ---------------------
 
-    $ composer create-project futurolan/weezbadge
+    $ composer create-project futurolan/inscriptions-gamers-assembly
 
 
 Configuration
 -------------
 
-Create a file name '.env.local' in project root (weezevent/). This file will not be overwrite on update.
+Create a file name '.env.local' in project root (inscriptions-gamers-assembly/). This file will not be overwrite on update.
 
     # Symfony
     APP_ENV=prod
