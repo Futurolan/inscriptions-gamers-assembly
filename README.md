@@ -9,6 +9,13 @@ Requirements
 * A [Google Oauth 2.0 API Key](https://developers.google.com/identity/protocols/OAuth2)
 * A Weezevent API Key (contact Weezevent for getting one)
 
+
+Installation / Update
+---------------------
+
+    $ composer create-project futurolan/weezbadge
+
+
 Configuration
 -------------
 
