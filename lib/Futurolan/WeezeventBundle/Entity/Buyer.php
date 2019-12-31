@@ -13,7 +13,7 @@ use JMS\Serializer\Annotation as Serializer;
 class Buyer
 {
     /**
-     * @var int
+     * @var int|null
      * @Serializer\Type("int")
      */
     private $id_acheteur;
@@ -44,9 +44,9 @@ class Buyer
 
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getIdAcheteur(): int
+    public function getIdAcheteur(): ?int
     {
         return $this->id_acheteur;
     }
@@ -62,7 +62,7 @@ class Buyer
     /**
      * @return string
      */
-    public function getEmailAcheteur(): string
+    public function getEmailAcheteur(): ?string
     {
         return $this->email_acheteur;
     }

@@ -50,6 +50,12 @@ class Event
     private $multiple_dates;
 
     /**
+     * @var SalesStatus
+     * @Serializer\Type("Futurolan\WeezeventBundle\Entity\SalesStatus")
+     */
+    private $sales_status;
+
+    /**
      * @return int
      */
     public function getId(): int
@@ -143,5 +149,13 @@ class Event
     public function setMultipleDates(bool $multiple_dates): void
     {
         $this->multiple_dates = $multiple_dates;
+    }
+
+    /**
+     * @return SalesStatus
+     */
+    public function getSalesStatus(): SalesStatus
+    {
+        return $this->sales_status;
     }
 }

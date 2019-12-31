@@ -111,7 +111,7 @@ class Ticket
     /**
      * @return DateTime
      */
-    public function getStartSale(): DateTime
+    public function getStartSale(): ?DateTime
     {
         return $this->start_sale;
     }
@@ -119,7 +119,7 @@ class Ticket
     /**
      * @return DateTime
      */
-    public function getEndSale(): DateTime
+    public function getEndSale(): ?DateTime
     {
         return $this->end_sale;
     }

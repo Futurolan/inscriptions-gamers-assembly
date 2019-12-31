@@ -4,6 +4,7 @@
 namespace App\Controller;
 
 use App\Service\ParameterService;
+use App\Service\SynchroEventsService;
 use Futurolan\WeezeventBundle\Client\WeezeventClient;
 use Futurolan\WeezeventBundle\Entity\Participant;
 use Futurolan\WeezeventBundle\Entity\Team;
@@ -12,6 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use GuzzleHttp\Exception\GuzzleException;
+use \Exception as Exception;
 
 /**
  * Class listEventsController
@@ -26,18 +28,34 @@ class EventsController extends AbstractController
     /** @var ParameterService */
     private $parameterService;
 
+    /** @var SynchroEventsService */
+    private $synchroEventsService;
+
     /**
      * listEventsController constructor.
      * @param WeezeventClient $weezeventClient
      * @param ParameterService $parameterService
+     * @param SynchroEventsService $synchroEventsService
      */
-    public function __construct(WeezeventClient $weezeventClient, ParameterService $parameterService)
+    public function __construct(WeezeventClient $weezeventClient, ParameterService $parameterService, SynchroEventsService $synchroEventsService)
     {
         $this->weezeventClient = $weezeventClient;
         $this->parameterService = $parameterService;
+        $this->synchroEventsService = $synchroEventsService;
 
         $this->weezeventClient->setApiToken($this->parameterService->get($this->parameterService::API_TOKEN));
     }
+
+    /**
+     * @Route("/admin/test", name="testPage")
+     * @Security("is_granted('ROLE_ADMIN')")
+     */
+    public function test()
+    {
+        dump($this->weezeventClient->getParticipantsByTicket(1852372)[0]);
+        dd($this->weezeventClient->getParticipantsByTicket(1838355)[0]);
+    }
+
 
     /**
      * @Route("/events", name="eventsListPage")
@@ -64,7 +82,7 @@ class EventsController extends AbstractController
         $participants = $this->weezeventClient->getParticipantsByTicket($ticketID);
         if ( $ticket->getGroupSize() > 0 ) {
             $isTeam = true;
-            $teams = $this->participantsToTeams($participants);
+            $teams = $this->synchroEventsService->participantsToTeams($participants);
             $participants = null;
         } else {
             $isTeam = false;
@@ -81,46 +99,11 @@ class EventsController extends AbstractController
 
 
     /**
-     * @param Participant[] $participants
-     * @return Team[]
-     */
-    private function participantsToTeams(array $participants)
-    {
-        /** @var Team[] $teams */
-        $teams = [];
-        /** @var Participant $participant */
-        foreach($participants as $participant) {
-            if ( !key_exists($participant->getBuyer()->getIdAcheteur(), $teams) ) {
-                $team = new Team();
-                $team->setId($participant->getBuyer()->getIdAcheteur());
-                $team->setName($this->getTeamName($participant));
-                $team->setEmail($participant->getBuyer()->getEmailAcheteur());
-                $team->setOwnerFirstName($participant->getBuyer()->getAcheteurFirstName());
-                $team->setOwnerLastName($participant->getBuyer()->getAcheteurLastName());
-                $teams[$participant->getBuyer()->getIdAcheteur()] = $team;
-            }
-            $teams[$participant->getBuyer()->getIdAcheteur()]->addMember($participant);
-        }
-        return $teams;
-    }
-
-    /**
-     * @param Participant $participant
-     * @return string
-     */
-    private function getTeamName(Participant $participant) {
-        foreach ($participant->getBuyer()->getAnswers() as $anwser) {
-            if ( $anwser->getLabel() === "Dénomination de l'équipe" ) { return $anwser->getValue(); }
-        }
-        return (string)$participant->getBuyer()->getIdAcheteur();
-    }
-
-    /**
      * @Route("/event/{eventID}", name="eventTicketsListPage")
      * @param string $eventID
      * @param ParameterService $parameterService
      * @return Response
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function eventTicketsAction(string $eventID, ParameterService $parameterService)
     {

@@ -139,7 +139,7 @@ class WeezeventClient
     /**
      * @param string $eventId
      * @return EventTicket
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function getTicketsByEvent(string $eventId)
     {
