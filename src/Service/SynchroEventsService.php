@@ -14,7 +14,6 @@ use Futurolan\WeezeventBundle\Entity\Event;
 use \Exception as Exception;
 use Futurolan\WeezeventBundle\Entity\Participant;
 use Futurolan\WeezeventBundle\Entity\Team as WeezeventTeam;
-use Futurolan\WeezeventBundle\Entity\Ticket;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
@@ -53,6 +52,36 @@ class SynchroEventsService
     }
 
     /**
+     * @return Event[]
+     * @throws GuzzleException
+     */
+    public function synchro()
+    {
+        $weezeventEvents = $this->weezeventClient->getEvents(false);
+        $eventsDB = $events = [];
+        foreach ($this->em->getRepository(\App\Entity\Event::class)->findAll() as $eventDB) {
+            $eventsDB[$eventDB->getId()] = $eventDB;
+        }
+
+        foreach($weezeventEvents as $weezeventEvent) {
+            if ( $weezeventEvent->getSalesStatus()->getIdStatus() === 5 ) {
+                $events[] = $weezeventEvent;
+                if ( key_exists($weezeventEvent->getId(), $eventsDB) ) { unset($eventsDB[$weezeventEvent->getId()]); }
+            }
+        }
+
+        /** Suppression des événements périmés en DB */
+        if ( count($eventsDB) > 0 ) {
+            foreach ($eventsDB as $item) {
+                $this->em->remove($item);
+            }
+            $this->em->flush();
+        }
+
+        return $events;
+    }
+
+    /**
      * @param Event $weezeventEvent
      * @return bool
      * @throws Exception
@@ -85,16 +114,18 @@ class SynchroEventsService
      */
     public function synchroCategories(Event $weezeventEvent)
     {
-        try {
-            $tickets = $this->weezeventClient->getTicketsByEvent($weezeventEvent->getId());
-            $event = $this->em->getRepository(\App\Entity\Event::class)->find($weezeventEvent->getId());
-        } catch (Exception $e) {
-            return false;
-        }
+        $tickets = $this->weezeventClient->getTicketsByEvent($weezeventEvent->getId());
+        /** @var \App\Entity\Event $event */
+        $event = $this->em->getRepository(\App\Entity\Event::class)->find($weezeventEvent->getId());
+
+        $categoriesDB = [];
+        /** @var Category $categoryDB */
+        foreach ($this->em->getRepository(Category::class)->getAllCategoryFromEvent($event) as $categoryDB) { $categoriesDB[$categoryDB->getId()]= $categoryDB; }
 
         $weezeventCategory = $tickets->getCategories();
         if ( is_array($weezeventCategory) ) {
             foreach ($tickets->getCategories() as $cat) {
+                if ( key_exists($cat->getId(), $categoriesDB) ) { unset($categoriesDB[$cat->getId()]); }
                 $category = $this->em->getRepository(Category::class)->find($cat->getId());
                 if ( !$category instanceof Category) {
                     $category = new Category();
@@ -110,6 +141,14 @@ class SynchroEventsService
             }
         }
 
+        /** Suppression des catégories périmées en DB */
+        if ( count($categoriesDB) > 0 ) {
+            foreach ($categoriesDB as $item) {
+                $this->em->remove($item);
+            }
+            $this->em->flush();
+        }
+
         return true;
     }
 
@@ -121,9 +160,14 @@ class SynchroEventsService
      */
     public function synchroTournaments(Category $category, \Futurolan\WeezeventBundle\Entity\Category $weezeventCategory)
     {
+        $tournamentsDB = [];
+        /** @var Tournament $tournamentDB */
+        foreach ($this->em->getRepository(Tournament::class)->getAllTournamentFromCategory($category) as $tournamentDB) { $tournamentsDB[$tournamentDB->getId()]= $tournamentDB; }
+
         $weezeventTournaments = $weezeventCategory->getTickets();
         if ( is_array($weezeventTournaments) ) {
             foreach ($weezeventTournaments as $ticket) {
+                if ( key_exists($ticket->getId(), $tournamentsDB) ) { unset($tournamentsDB[$ticket->getId()]); }
                 $tournament = $this->em->getRepository(Tournament::class)->find($ticket->getId());
                 if ( !$tournament instanceof Tournament) {
                     $tournament = new Tournament();
@@ -144,6 +188,14 @@ class SynchroEventsService
                 if ( $tournament->getGroupSize() > 1 ) { $this->synchroTeams($tournament); }
                 $this->synchroPlayers($tournament);
             }
+        }
+
+        /** Suppression des tournois périmés en DB */
+        if ( count($tournamentsDB) > 0 ) {
+            foreach ($tournamentsDB as $item) {
+                $this->em->remove($item);
+            }
+            $this->em->flush();
         }
 
         return true;
@@ -181,8 +233,8 @@ class SynchroEventsService
 
         /** Suppression des équipes supprimées daans Weezevent */
         if ( count($dbTeams) > 0 ) {
-            foreach ($dbTeams as $dbTeam) {
-                $this->em->remove($dbTeam);
+            foreach ($dbTeams as $item) {
+                $this->em->remove($item);
             }
             $this->em->flush();
         }
@@ -221,6 +273,14 @@ class SynchroEventsService
                 $this->em->persist($player);
             }
         }
+
+        /** Suppression des tournois périmés en DB */
+        if ( count($players) > 0 ) {
+            foreach ($players as $item) {
+                $this->em->remove($item);
+            }
+        }
+
         $this->em->flush();
     }
 

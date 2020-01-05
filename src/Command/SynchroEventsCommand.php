@@ -12,6 +12,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use \Exception as Exception;
 
 /**
  * Class SynchroCommand
@@ -69,17 +70,21 @@ class SynchroEventsCommand extends Command
         $this->io->title("Synchronisation des événements");
 
         try {
-            $events = $this->weezeventClient->getEvents(false);
+            $events = $this->synchroEventsService->synchro();
         } catch (GuzzleException $e) {
             $this->io->getErrorStyle()->warning("Erreur: impossible de récupérer les événements chez Weezevent.");
             return 0;
         }
 
-        $this->io->text(count($events) . " événements récupérés.");
+        $this->io->text(count($events) . " événements actifs récupérés.");
 
         $this->io->progressStart(count($events));
         foreach ($events as $event) {
-            $this->synchroEventsService->synchroEvent($event);
+            try {
+                $this->synchroEventsService->synchroEvent($event);
+            } catch (GuzzleException $e) {
+            } catch (Exception $e) {
+            }
             $this->io->progressAdvance();
         }
         $this->io->progressFinish();

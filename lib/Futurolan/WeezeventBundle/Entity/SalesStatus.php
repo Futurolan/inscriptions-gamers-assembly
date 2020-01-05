@@ -14,6 +14,12 @@ class SalesStatus
     /**
      * @var int
      * @Serializer\Type("int")
+     *
+     * 1 : Vente en cours
+     * 2 : Bientôt en vente
+     * 3 : Ventes terminées
+     * 4 : ?
+     * 5 : Évènement non publié ou clôturé
      */
     private $id_status;
 

@@ -52,6 +52,7 @@ class EventsController extends AbstractController
      */
     public function test()
     {
+        dump($this->weezeventClient->getEvents(false));
         dump($this->weezeventClient->getParticipantsByTicket(1852372)[0]);
         dd($this->weezeventClient->getParticipantsByTicket(1838355)[0]);
     }
