@@ -26,14 +26,11 @@ class PlayerController extends AbstractController
     /**
      * @Route("/player", methods={"GET"}, name="playerPage")
      *
-     * pastor.pierre2@outlook.fr
-     * david.thimeur@hotmail.fr
-     * teamneverbackdown.esport@gmail.com
      */
     public function playerPage()
     {
         /** @var Player[] $players */
-        $players = $this->em->getRepository(Player::class)->findBy(['owner' => 'teamneverbackdown.esport@gmail.com']);
+        $players = $this->em->getRepository(Player::class)->findBy(['owner' => '']);
         return $this->render('players/index.html.twig', [
             'players' => $players,
         ]);
