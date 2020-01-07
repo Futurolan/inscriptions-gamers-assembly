@@ -9,6 +9,10 @@ use App\Entity\Event;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 
+/**
+ * Class CategoryRepository
+ * @package App\Repository
+ */
 class CategoryRepository extends ServiceEntityRepository
 {
     /**

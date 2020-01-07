@@ -1,0 +1,111 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="alert alert-primary mt-2 mt-md-0 mx-1 mx-md-0 text-justify" role="alert">
+        {% trans %}interface_description_1{% endtrans %}
+    </div>
+
+    <div class="row mx-0 mb-5">
+        <div class="col-12 px-1">
+            <ul class="list-group">
+                <li class="list-group-item align-items-center d-none d-md-flex row mx-0 active">
+                    <div class="col-12 col-md-3 px-0 d-flex"><span>{% trans %}Joueur{% endtrans %}</span></div>
+                    <div class="col-12 col-md-2 px-0 d-flex"><span>{% trans %}Pseudo{% endtrans %}</span></div>
+                    <div class="col-12 col-md-3 px-0 d-flex"><span>{% trans %}Équipe{% endtrans %}</span></div>
+                    <div class="col-12 col-md-4 px-0 d-flex"><span>{% trans %}Tournoi{% endtrans %}</span></div>
+                </li>
+                {% for player in players %}
+                    <li class="list-group-item d-flex align-items-center row mx-0 px-2 px-md-3 cursor-pointer">
+                        <div class="col-12 col-md-3 px-0 d-flex">
+                            <h5 class="mb-0 text-primary">
+                                {{ player.firstname }} {{ player.LastName }}
+                            </h5>
+                        </div>
+                        <div class="col-12 col-md-2 px-0 d-flex">
+                            <span class="text-secondary"><em>{{ player.pseudo }}</em></span>
+                        </div>
+                        <div class="col-12 col-md-3 px-0 d-flex">
+                            <span>{{ player.team is not null ? player.team.getTeamName() }}</span>
+                        </div>
+                        <div class="col-12 d-md-none futurolan-lh-5">&nbsp;</div>
+                        <div class="col-12 col-md-4 px-0 d-flex flex-column">
+                            <div>{{ player.tournament.name }}</div>
+                            <div class="text-secondary">{{ player.tournament.category.event.name }}</div>
+                        </div>
+                {% endfor %}
+                {% if players is empty %}
+                    <li class="list-group-item d-flex align-items-center row mx-0 px-2 px-md-3">
+                        <div class="col-12 px-0 justify-content-md-center d-flex"><span>Aucun joueur</span></div>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+{#    <div class="row mx-0 mb-5">#}
+{#        <div class="col-12 px-1">#}
+{#            <ul class="list-group js-ensma-livraisons-list">#}
+{#                <li class="list-group-item align-items-center d-none d-md-flex row mx-0 active">#}
+{#                    <div class="col-12 col-md-3 px-0 d-flex"><span>Fournisseur</span></div>#}
+{#                    <div class="col-12 col-md-3 px-0 d-flex"><span>Destinataire</span></div>#}
+{#                    <div class="col-12 col-md-2 px-0 d-flex justify-content-md-center"><span class="text-md-center">Date d'arrivée</span></div>#}
+{#                    <div class="col-12 col-md-2 px-0 d-flex justify-content-md-center"><span class="text-md-center">État</span></div>#}
+{#                    <div class="col-12 {{ remise ? 'col-md-2' : 'col-md-1' }} px-0 d-flex justify-content-md-end"><span class="text-md-right">Nb Colis</span></div>#}
+{#                    {% if not remise %}#}
+{#                        <div class="col-12 col-md-1 px-0 d-flex justify-content-md-end"><span class="text-md-right">Récupéré</span></div>#}
+{#                    {% endif %}#}
+{#                </li>#}
+{#                {% for livraison in livraisons %}#}
+{#                    <li class="js-ensma-livraison-item list-group-item d-flex align-items-center row mx-0 px-2 px-md-3 cursor-pointer" data-url="{{ path('livraisonDetailPage', {'livraison': livraison.id }) }}" data-livraisonID="{{ livraison.id }}">#}
+{#                        <div class="col-12 col-md-3 px-0 d-flex"><h5 class="mb-0">{{ livraison.fournisseurNom }}</h5></div>#}
+{#                        <div class="col-12 col-md-3 px-0 d-flex">#}
+{#                        <span class="d-flex flex-column">#}
+{#                            {% if livraison.destinataire is not empty %}#}
+{#                                {% for destinataire in livraison.destinataire %}#}
+{#                                    <span>{{ destinataire.identite }}</span>#}
+{#                                {% endfor %}#}
+{#                            {% else %}#}
+{#                                <span>Inconnu</span>#}
+{#                            {% endif %}#}
+{#                        </span>#}
+{#                        </div>#}
+{#                        <div class="col-12 col-md-2 px-0 justify-content-md-center d-none d-md-flex" title="{{ livraison.receptionDate|date("d/m/Y à H:i:s") }}"><span>{{ livraison.receptionDate|date("d/m/Y") }}</span></div>#}
+{#                        <div class="col-12 d-md-none ensma-lh-5">&nbsp;</div>#}
+{#                        <div class="col-12 col-md-2 px-0 justify-content-md-center d-none d-md-flex">#}
+{#                            <span class="{{ livraison.colisBonEtat ? 'color-green':'color-red' }}" title="{{ livraison.colisDeterioreDescription }}">{{ livraison.colisBonEtat ? 'Bon':'Endommagé' }}</span>#}
+{#                        </div>#}
+{#                        {% if not livraison.colisBonEtat %}#}
+{#                            <div class="col-12 d-md-none px-0 d-flex"><span class="color-red">Colis endommagé</span></div>#}
+{#                        {% endif %}#}
+{#                        <div class="col-12 {{ remise ? 'col-md-2' : 'col-md-1' }} px-0 d-flex justify-content-between justify-content-md-end">#}
+{#                            <span>#}
+{#                                <span class="text-md-right">{{ livraison.colisNombreRecu }}</span>#}
+{#                                <span class="d-md-none">&nbsp;colis</span>#}
+{#                            </span>#}
+{#                            <span class="d-md-none text-right">#}
+{#                                {{ livraison.receptionDate|date("d/m/Y") }}#}
+{#                            </span>#}
+{#                        </div>#}
+{#                        {% if not remise %}#}
+{#                            <div class="col-12 col-md-1 px-0 d-none d-md-flex justify-content-between justify-content-md-end">#}
+{#                                {{ livraison.recuperationDate is not empty ? livraison.recuperationDate|date("d/m/Y") : '&nbsp;' }}#}
+{#                            </div>#}
+{#                            {% if livraison.recuperationDate is not empty %}#}
+{#                                <div class="col-12 d-md-none px-0 d-flex"><span class="text-primary" title="{{ livraison.recuperationDate|date("d/m/Y à H:i:s") }}">Livraison récupérée le {{ livraison.recuperationDate|date("d/m/Y") }}</span></div>#}
+{#                            {% endif %}#}
+{#                        {% endif %}#}
+{#                    </li>#}
+{#                {% endfor %}#}
+{#                {% if livraisons is empty %}#}
+{#                    <li class="list-group-item d-flex align-items-center row mx-0 px-2 px-md-3">#}
+{#                        <div class="col-12 px-0 justify-content-md-center d-flex"><span>Aucune livraison</span></div>#}
+{#                    </li>#}
+{#                {% endif %}#}
+{#            </ul>#}
+{#        </div>#}
+{#    </div>#}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}

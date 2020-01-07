@@ -64,7 +64,8 @@ class SynchroEventsService
         }
 
         foreach($weezeventEvents as $weezeventEvent) {
-            if ( $weezeventEvent->getSalesStatus()->getIdStatus() === 5 ) {
+//            if ( $weezeventEvent->getSalesStatus()->getIdStatus() === 5 ) {
+            if ( $weezeventEvent->getSalesStatus()->getIdStatus() >= 1 ) {
                 $events[] = $weezeventEvent;
                 if ( key_exists($weezeventEvent->getId(), $eventsDB) ) { unset($eventsDB[$weezeventEvent->getId()]); }
             }
