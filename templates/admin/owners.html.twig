@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="row mx-0 mb-5">
+    <div class="col-12 px-1">
+        <ul class="list-group js-futurolan-owner-list">
+            <li class="list-group-item align-items-center d-none d-md-flex row mx-0 active">
+                <div class="col-12 col-md-3 px-0 d-flex"><span>{% trans %}Propriétaire{% endtrans %}</span></div>
+                <div class="col-12 col-md-3 px-0 d-flex"><span>{% trans %}Email{% endtrans %}</span></div>
+                <div class="col-12 col-md-6 px-0 d-flex"><span>{% trans %}Password{% endtrans %}</span></div>
+            </li>
+            {% for owner in owners %}
+                <li class="list-group-item d-flex align-items-center row mx-0 px-2 px-md-3 cursor-pointer js-futurolan-owner-item" data-url="{{ path('playerPage', {'password': owner.password }) }}">
+                    <div class="col-12 col-md-3 px-0 d-flex">
+                        <h5 class="mb-0 text-primary">
+                            {{ owner.firstname }} {{ owner.LastName }}
+                        </h5>
+                    </div>
+                    <div class="col-12 col-md-3 px-0 d-flex">
+                        <span class="text-secondary"><em>{{ owner.email }}</em></span>
+                    </div>
+                    <div class="col-12 col-md-6 px-0 d-none d-md-flex">
+                        <span>{{ owner.password }}</span>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $(function () {
+            $('.js-futurolan-owner-list').on('click', '.js-futurolan-owner-item', function (e) {
+                e.preventDefault();
+                window.open($(e.currentTarget).attr('data-url'), "_self");
+            });
+        });
+    </script>
+{% endblock %}
+

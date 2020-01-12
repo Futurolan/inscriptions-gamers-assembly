@@ -5,11 +5,13 @@ namespace App\Service;
 
 
 use App\Entity\Category;
+use App\Entity\Owner;
 use App\Entity\Player;
 use App\Entity\Team;
 use App\Entity\Tournament;
 use Doctrine\ORM\EntityManagerInterface;
 use Futurolan\WeezeventBundle\Client\WeezeventClient;
+use Futurolan\WeezeventBundle\Entity\Buyer;
 use Futurolan\WeezeventBundle\Entity\Event;
 use \Exception as Exception;
 use Futurolan\WeezeventBundle\Entity\Participant;
@@ -36,6 +38,9 @@ class SynchroEventsService
 
     /** @var array */
     private $teams = [];
+
+    /** @var Buyer[] */
+    private $buyers = [];
 
     /**
      * ParameterService constructor.
@@ -126,6 +131,7 @@ class SynchroEventsService
         $weezeventCategory = $tickets->getCategories();
         if ( is_array($weezeventCategory) ) {
             foreach ($tickets->getCategories() as $cat) {
+                if ( preg_match('/^(badges|visiteurs)$/i', $cat->getName()) ) { continue; }
                 if ( key_exists($cat->getId(), $categoriesDB) ) { unset($categoriesDB[$cat->getId()]); }
                 $category = $this->em->getRepository(Category::class)->find($cat->getId());
                 if ( !$category instanceof Category) {
@@ -230,15 +236,15 @@ class SynchroEventsService
             $this->em->persist($dbTeam);
             $this->teams[$dbTeam->getId()] = $dbTeam;
         }
-        $this->em->flush();
 
         /** Suppression des équipes supprimées daans Weezevent */
         if ( count($dbTeams) > 0 ) {
             foreach ($dbTeams as $item) {
                 $this->em->remove($item);
             }
-            $this->em->flush();
         }
+
+        $this->em->flush();
     }
 
     /**
@@ -272,12 +278,49 @@ class SynchroEventsService
                 }
 
                 $this->em->persist($player);
+
+                /** Construction de la table des propriétaires */
+                $this->buyers[$participant->getBuyer()->getEmailAcheteur()] = $participant->getBuyer();
             }
         }
 
         /** Suppression des tournois périmés en DB */
         if ( count($players) > 0 ) {
             foreach ($players as $item) {
+                $this->em->remove($item);
+            }
+        }
+
+        $this->em->flush();
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function synchroBuyers()
+    {
+        $dbOwners = $this->em->getRepository(Owner::class)->findAll();
+        $dbBuyers = [];
+        foreach ($dbOwners as $dbOwner) {$dbBuyers[$dbOwner->getEmail()] = $dbOwner;}
+
+        foreach ($this->buyers as $buyer) {
+            if ( !key_exists($buyer->getEmailAcheteur(), $dbBuyers) || !$dbBuyers[$buyer->getEmailAcheteur()] instanceof Owner ) {
+                $owner = new Owner();
+                $owner->setEmail($buyer->getEmailAcheteur());
+            } else {
+                $owner = $dbBuyers[$buyer->getEmailAcheteur()];
+                unset($dbBuyers[$buyer->getEmailAcheteur()]);
+            }
+
+            $owner->setFirstname($buyer->getAcheteurFirstName());
+            $owner->setLastname($buyer->getAcheteurLastName());
+            $owner->createPassword();
+            $this->em->persist($owner);
+        }
+
+        /** Suppression des propriétaires périmés en DB */
+        if ( count($dbBuyers) > 0 ) {
+            foreach ($dbBuyers as $item) {
                 $this->em->remove($item);
             }
         }

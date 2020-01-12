@@ -89,6 +89,12 @@ class SynchroEventsCommand extends Command
         }
         $this->io->progressFinish();
 
+        try {
+            $this->synchroEventsService->synchroBuyers();
+        } catch (Exception $e) {
+            $output->writeln('<error>'.$e->getMessage().'</error>');
+        }
+
         return 1;
     }
 }

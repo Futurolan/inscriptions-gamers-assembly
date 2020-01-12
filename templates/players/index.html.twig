@@ -7,7 +7,7 @@
 
     <div class="row mx-0 mb-5">
         <div class="col-12 px-1">
-            <ul class="list-group">
+            <ul class="list-group js-futurolan-player-list">
                 <li class="list-group-item align-items-center d-none d-md-flex row mx-0 active">
                     <div class="col-12 col-md-3 px-0 d-flex"><span>{% trans %}Joueur{% endtrans %}</span></div>
                     <div class="col-12 col-md-2 px-0 d-flex"><span>{% trans %}Pseudo{% endtrans %}</span></div>
@@ -15,7 +15,7 @@
                     <div class="col-12 col-md-4 px-0 d-flex"><span>{% trans %}Tournoi{% endtrans %}</span></div>
                 </li>
                 {% for player in players %}
-                    <li class="list-group-item d-flex align-items-center row mx-0 px-2 px-md-3 cursor-pointer">
+                    <li class="list-group-item d-flex align-items-center row mx-0 px-2 px-md-3 cursor-pointer js-futurolan-player-item" data-url="{{ path('playerFormPage', {'password': password, 'player': player.id }) }}">
                         <div class="col-12 col-md-3 px-0 d-flex">
                             <h5 class="mb-0 text-primary">
                                 {{ player.firstname }} {{ player.LastName }}
@@ -32,6 +32,7 @@
                             <div>{{ player.tournament.name }}</div>
                             <div class="text-secondary">{{ player.tournament.category.event.name }}</div>
                         </div>
+                    </li>
                 {% endfor %}
                 {% if players is empty %}
                     <li class="list-group-item d-flex align-items-center row mx-0 px-2 px-md-3">
@@ -108,4 +109,12 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <script>
+        $(function () {
+            $('.js-futurolan-player-list').on('click', '.js-futurolan-player-item', function (e) {
+                e.preventDefault();
+                window.open($(e.currentTarget).attr('data-url'), "_self");
+            });
+        });
+    </script>
 {% endblock %}

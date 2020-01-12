@@ -5,6 +5,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Player
@@ -36,6 +37,7 @@ class Player
     /**
      * @var string
      * @ORM\Column(type="string", length=250, unique=false)
+     * @Assert\NotBlank
      */
     private $email;
 

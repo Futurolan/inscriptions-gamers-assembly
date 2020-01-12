@@ -28,11 +28,19 @@ class AdminController extends AbstractController
 
         $modules = [];
 
-        if ( $this->isGranted('ROLE_ADMIN') ) {
+//        if ( $this->isGranted('ROLE_ADMIN') ) {
+//            $modules[] = [
+//                'name' => "Événements",
+//                'route' => 'eventsListPage',
+//                'icon' => 'far fa-calendar-alt',
+//            ];
+//        }
+
+        if ( $this->isGranted('ROLE_SUPER_ADMIN') ) {
             $modules[] = [
-                'name' => "Événements",
-                'route' => 'eventsListPage',
-                'icon' => 'far fa-calendar-alt',
+                'name' => "Acheteurs",
+                'route' => 'adminOwnersPage',
+                'icon' => 'fas fa-id-badge',
             ];
         }
 

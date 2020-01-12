@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1 class="mb-4">{% trans %}Modify Player{% endtrans %}</h1>
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+    <div class="row mb-5">
+        <div class="col-12">
+            {{ form_row(form.firstname) }}
+        </div>
+        <div class="col-12">
+            {{ form_row(form.lastname) }}
+        </div>
+        <div class="col-12">
+            {{ form_row(form.pseudo) }}
+        </div>
+        <div class="col-12">
+            {{ form_row(form.email) }}
+        </div>
+        <div class="col-12 my-3">
+            <a class="btn btn-secondary" href="{{ path("playerPage", {'password': password}) }}">Cancel</a>
+            <button type="submit" class="btn btn-primary" formnovalidate>Save</button>
+        </div>
+    </div>
+    {{ form_end(form) }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}
+

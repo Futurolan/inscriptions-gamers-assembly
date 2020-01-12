@@ -5,7 +5,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta http-equiv="X-UA-Compatible" content="IE=Edge">
-        <title>{% block title %}Badges Gamers Assembly{% endblock %}</title>
+        <title>{% block title %}Gamers Assembly{% endblock %}</title>
         <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
@@ -14,6 +14,10 @@
         <style>
             .mainContainer{flex: 1 0 auto;}
             .cursor-pointer{cursor:pointer;}
+            label.required:after {
+                content:"*";
+                color:red;
+            }
         </style>
         {% block stylesheets %}{% endblock %}
     </head>
@@ -21,7 +25,7 @@
         <div class="container-fluid d-flex h-100 px-0">
             <main class="d-flex flex-column px-0 w-100" role="main">
                 <nav class="navbar navbar-dark bg-primary navbar-expand-lg">
-                    <a class="navbar-brand" href="{{ path('playerPage') }}">
+                    <a class="navbar-brand" href="/">
                         <i class="fas fa-id-badge"></i>
                         Gamers Assembly
                     </a>

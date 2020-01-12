@@ -49,12 +49,7 @@ class HomePageController extends AbstractController
             }
         }
 
-        $defaultEvent = $this->badgeController->getDefaultEvent();
-        $tickets = $this->badgeController->getAllowedTickets();
-
         return $this->render("home/home.html.twig", [
-            'defaultEvent' => $defaultEvent,
-            'tickets' => $tickets,
         ]);
     }
 
