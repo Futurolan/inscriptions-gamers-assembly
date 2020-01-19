@@ -29,9 +29,7 @@ class TournamentRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('t')
             ->where('t.category = :categoryID')
             ->setParameter('categoryID', $category->getId());
-
         $query = $qb->getQuery();
-
         return $query->execute();
     }
 }

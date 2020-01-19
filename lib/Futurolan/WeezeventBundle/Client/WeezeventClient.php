@@ -3,16 +3,18 @@
 
 namespace Futurolan\WeezeventBundle\Client;
 
+use Futurolan\WeezeventBundle\Entity\CustomForm;
 use Futurolan\WeezeventBundle\Entity\Event;
 use Futurolan\WeezeventBundle\Entity\Events;
 use Futurolan\WeezeventBundle\Entity\EventTicket;
 use Futurolan\WeezeventBundle\Entity\EventTickets;
+use Futurolan\WeezeventBundle\Entity\Form;
 use Futurolan\WeezeventBundle\Entity\Participant;
 use Futurolan\WeezeventBundle\Entity\ParticipantPost;
 use Futurolan\WeezeventBundle\Entity\Participants;
+use Futurolan\WeezeventBundle\Entity\PlayerPatch;
 use Futurolan\WeezeventBundle\Entity\Ticket;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use JMS\Serializer\Serializer;
 use \Exception as Exception;
 
@@ -62,7 +64,6 @@ class WeezeventClient
 
     /**
      * @return mixed
-     * @throws GuzzleException
      */
     public function getNewToken()
     {
@@ -75,7 +76,7 @@ class WeezeventClient
     /**
      * @param bool $includeClosed
      * @return Event[]
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function getEvents(bool $includeClosed = false)
     {
@@ -93,7 +94,7 @@ class WeezeventClient
     /**
      * @param string $eventId
      * @return Event|null
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function getEvent(?string $eventId)
     {
@@ -110,7 +111,7 @@ class WeezeventClient
     /**
      * @param string $eventId
      * @return Participant[]
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function getParticipantsByEvent(string $eventId)
     {
@@ -124,7 +125,7 @@ class WeezeventClient
     /**
      * @param string $ticketId
      * @return Participant[]
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function getParticipantsByTicket(string $ticketId)
     {
@@ -133,6 +134,21 @@ class WeezeventClient
         /** @var Participants $data */
         $data = $this->serializer->deserialize($response->getBody(), Participants::class, 'json');
         return $data->getParticipants();
+    }
+
+    /**
+     * @param string $eventId
+     * @param string $participantId
+     * @return CustomForm|null
+     * @throws Exception
+     */
+    public function getParticipantCustomForm(string $eventId, string $participantId)
+    {
+        $this->client = new Client();
+        $response = $this->client->request('GET', $this->buildQuery($this->apiUrl.Constants::PARTICIPANT_V3, [':id_event' => $eventId, ':id_participant' => $participantId, 'loadFormAnswers' => true]));
+        /** @var CustomForm $data */
+        $data = $this->serializer->deserialize($response->getBody(), CustomForm::class, 'json');
+        return $data;
     }
 
 
@@ -153,9 +169,25 @@ class WeezeventClient
 
     /**
      * @param string $eventId
+     * @return Form[]
+     * @throws Exception
+     */
+    public function getEventForm(string $eventId)
+    {
+        $this->client = new Client();
+        $response = $this->client->request('GET', $this->buildQuery($this->apiUrl.'v3/form', ['id_evenement' => $eventId]));
+
+        /** @var Form[] $data */
+        //dd($response->getBody()->getContents());
+        $data = $this->serializer->deserialize($response->getBody(), "array<Futurolan\WeezeventBundle\Entity\Form>", 'json');
+        return $data;
+    }
+
+    /**
+     * @param string $eventId
      * @param string $categoryId
      * @return Ticket[]|null
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function getCategory(string $eventId, string $categoryId)
     {
@@ -172,7 +204,7 @@ class WeezeventClient
      * @param string $eventId
      * @param string $ticketId
      * @return Ticket|null
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function getTicket(string $eventId, string $ticketId)
     {
@@ -188,7 +220,7 @@ class WeezeventClient
     /**
      * @param ParticipantPost $participant
      * @return array
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function addParticipant(ParticipantPost $participant)
     {
@@ -198,9 +230,9 @@ class WeezeventClient
     /**
      * Add an array of ParticipantPost to Weezevent
      *
-     * @param ParticipantPost[] $participants
+     * @param PlayerPatch[] $participants
      * @return array
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function addParticipants(array $participants)
     {
@@ -216,13 +248,36 @@ class WeezeventClient
     }
 
     /**
+     * Edit Participant
+     * https://api.weezevent.com/doc/v3#participantspatch
+     *
+     * @param ParticipantPost[] $participants
+     * @return array|mixed
+     * @throws Exception
+     */
+    public function editParticipant(array $participants)
+    {
+        if ( empty($participants) ) { return []; }
+        $this->client = new Client();
+        $data = ['participants' => $participants, 'return_ticket_url' => false];
+        $response = $this->client->request('PATCH', $this->buildQuery($this->apiUrl.Constants::PARTICIPANTS_PATH, []),
+            [
+                'form_params' => array('data' => $this->serializer->serialize($data, 'json'))
+            ]
+        );
+        return $this->serializer->deserialize($response->getBody(), 'array', 'json');
+    }
+
+
+
+    /**
      * Delete Participant
      * https://api.weezevent.com/doc/v3#participantsdelete
      *
      * @param string $eventId
      * @param string $participantId
      * @return bool
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function deleteParticipant(string $eventId, string $participantId)
     {
@@ -243,8 +298,8 @@ class WeezeventClient
     /**
      * @param string $eventId
      * @param string $participantId
-     * @throws GuzzleException
      * @return string|null
+     * @throws Exception
      */
     public function getBadgeUrl(string $eventId, string $participantId)
     {
@@ -270,6 +325,11 @@ class WeezeventClient
      */
     private function buildQuery(string $url, array $params = [])
     {
+        if ( preg_match_all('/:[a-z_]+/i', $url, $match) ) {
+            foreach($match[0] as $item) {
+                if ( key_exists($item, $params) ) { $url = str_replace($item, $params[$item], $url); unset($params[$item]); }
+            }
+        }
         $query = http_build_query(array_merge(['api_key' => $this->apiKey, 'access_token' => $this->getApiToken()], $params));
         return $url.'?'.$query;
     }

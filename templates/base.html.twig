@@ -14,8 +14,8 @@
         <style>
             .mainContainer{flex: 1 0 auto;}
             .cursor-pointer{cursor:pointer;}
-            label.required:after {
-                content:"*";
+            label.required:before, legend.required:before {
+                content:"* ";
                 color:red;
             }
         </style>
@@ -53,7 +53,7 @@
 
                 {% for message in app.session.flashBag.get('success') %}
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ message }}
+                        {{ message|trans }}
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -62,7 +62,7 @@
 
                 {% for message in app.session.flashBag.get('error') %}
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ message }}
+                        {{ message|trans }}
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>

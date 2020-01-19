@@ -12,4 +12,5 @@ class Constants
     const TICKETS_PATH = 'tickets';
     const PARTICIPANTS_PATH = 'v3/participants';
     const ACCESS_TOKEN = 'auth/access_token';
+    const PARTICIPANT_V3 = 'v3/evenement/:id_event/participants/:id_participant';
 }

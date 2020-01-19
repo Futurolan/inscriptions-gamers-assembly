@@ -1,12 +1,19 @@
 interface_description_1: Here you can modify tickets bought in your name. You just have to click on a player to edit his ticket.
 description_application_1: This site allows you to manage your tickets for Gamers Assembly. Using this interface, you can modify the information of the tickets you have purchased. To access it, please use the link sent to you by email following your registration.
+error_ticket_modification_1: An error occurred while modifying this ticket, please try again later.
+success_ticket_modification_1: Ticket successfully modified !
 Joueur: Player
 Pseudo: Nickname
+Identifiant Compte: Game account name
 Équipe: Team
 Tournoi: Tournament
 Déconnexion: Logout
 Badges Gamers Assembly: Gamers Assembly Tickets
-Modify Player: Modify Player
+Modify Player: Edit Player
 Firstname: First name
 Lastname: Last name
 Email: Email
+Birth date: Birth date
+Year: Year
+Month: Month
+Day: Day

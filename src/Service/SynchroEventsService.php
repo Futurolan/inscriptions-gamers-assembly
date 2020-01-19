@@ -14,9 +14,10 @@ use Futurolan\WeezeventBundle\Client\WeezeventClient;
 use Futurolan\WeezeventBundle\Entity\Buyer;
 use Futurolan\WeezeventBundle\Entity\Event;
 use \Exception as Exception;
+use Futurolan\WeezeventBundle\Entity\Form;
 use Futurolan\WeezeventBundle\Entity\Participant;
 use Futurolan\WeezeventBundle\Entity\Team as WeezeventTeam;
-use GuzzleHttp\Exception\GuzzleException;
+use DateTime;
 
 /**
  * Class SynchroEventsService
@@ -42,6 +43,9 @@ class SynchroEventsService
     /** @var Buyer[] */
     private $buyers = [];
 
+    /** @var array */
+    private $customFields = [];
+
     /**
      * ParameterService constructor.
      * @param EntityManagerInterface $em
@@ -58,7 +62,7 @@ class SynchroEventsService
 
     /**
      * @return Event[]
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function synchro()
     {
@@ -69,8 +73,8 @@ class SynchroEventsService
         }
 
         foreach($weezeventEvents as $weezeventEvent) {
-//            if ( $weezeventEvent->getSalesStatus()->getIdStatus() === 5 ) {
-            if ( $weezeventEvent->getSalesStatus()->getIdStatus() >= 1 ) {
+            if ( $weezeventEvent->getSalesStatus()->getIdStatus() === 1 ) {
+//            if ( $weezeventEvent->getSalesStatus()->getIdStatus() >= 1 ) {
                 $events[] = $weezeventEvent;
                 if ( key_exists($weezeventEvent->getId(), $eventsDB) ) { unset($eventsDB[$weezeventEvent->getId()]); }
             }
@@ -91,7 +95,6 @@ class SynchroEventsService
      * @param Event $weezeventEvent
      * @return bool
      * @throws Exception
-     * @throws GuzzleException
      */
     public function synchroEvent(Event $weezeventEvent)
     {
@@ -116,7 +119,6 @@ class SynchroEventsService
      * @param Event $weezeventEvent
      * @return bool
      * @throws Exception
-     * @throws GuzzleException
      */
     public function synchroCategories(Event $weezeventEvent)
     {
@@ -130,6 +132,7 @@ class SynchroEventsService
 
         $weezeventCategory = $tickets->getCategories();
         if ( is_array($weezeventCategory) ) {
+
             foreach ($tickets->getCategories() as $cat) {
                 if ( preg_match('/^(badges|visiteurs)$/i', $cat->getName()) ) { continue; }
                 if ( key_exists($cat->getId(), $categoriesDB) ) { unset($categoriesDB[$cat->getId()]); }
@@ -163,11 +166,12 @@ class SynchroEventsService
      * @param Category $category
      * @param \Futurolan\WeezeventBundle\Entity\Category $weezeventCategory
      * @return bool
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function synchroTournaments(Category $category, \Futurolan\WeezeventBundle\Entity\Category $weezeventCategory)
     {
         $tournamentsDB = [];
+
         /** @var Tournament $tournamentDB */
         foreach ($this->em->getRepository(Tournament::class)->getAllTournamentFromCategory($category) as $tournamentDB) { $tournamentsDB[$tournamentDB->getId()]= $tournamentDB; }
 
@@ -192,8 +196,10 @@ class SynchroEventsService
                 $this->em->persist($tournament);
                 $this->em->flush();
 
+                $this->synchroCustomFields($tournament);
                 if ( $tournament->getGroupSize() > 1 ) { $this->synchroTeams($tournament); }
                 $this->synchroPlayers($tournament);
+
             }
         }
 
@@ -210,7 +216,42 @@ class SynchroEventsService
 
     /**
      * @param Tournament $tournament
-     * @throws GuzzleException
+     * @throws Exception
+     */
+    public function synchroCustomFields(Tournament $tournament)
+    {
+        if ( !key_exists($tournament->getCategory()->getEvent()->getId(), $this->customFields) ) {
+            $forms = $this->weezeventClient->getEventForm($tournament->getCategory()->getEvent()->getId());
+            $this->customFields[$tournament->getCategory()->getEvent()->getId()] = [];
+
+            foreach( $forms as $form ) {
+                foreach ($form->getTickets() as $tickeId) {
+                    if ( !key_exists($tickeId, $this->customFields[$form->getIdEvenement()]) ) {
+                        $this->customFields[$form->getIdEvenement()][$tickeId] = $form;
+                    }
+                }
+            }
+        }
+
+        $customFields = [];
+        /** @var Form $form */
+        $form = $this->customFields[$tournament->getCategory()->getEvent()->getId()][$tournament->getId()];
+        foreach($form->getQuestionsParticipant() as $question) {
+            if ( $question->getTypeId() === 0 ) {
+                $customFields[] = [
+                  'label' => $question->getLabel(),
+                  'id' => $question->getId(),
+                ];
+            }
+        }
+        $tournament->setCustomFields($customFields);
+        $this->em->persist($tournament);
+        $this->em->flush();
+    }
+
+    /**
+     * @param Tournament $tournament
+     * @throws Exception
      */
     public function synchroTeams(Tournament $tournament)
     {
@@ -249,15 +290,17 @@ class SynchroEventsService
 
     /**
      * @param Tournament $tournament
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function synchroPlayers(Tournament $tournament)
     {
         $participants = $this->getParticipantsByTournament($tournament);
         $players = $this->getDbPlayers($tournament);
 
+
         foreach ($participants as $participant) {
-            if ( !empty($participant->getBuyer()->getEmailAcheteur()) ) {
+            $emailBuyer = $this->getBuyerEmail($participant->getBuyer());
+            if ( !empty($emailBuyer) && !$participant->isDeleted() ) {
                 $player = $this->em->getRepository(Player::class)->find($participant->getIdParticipant());
                 if ( !$player instanceof Player) {
                     $player = new Player();
@@ -271,7 +314,9 @@ class SynchroEventsService
                 $player->setFirstname($participant->getOwner()->getFirstName());
                 $player->setLastname($participant->getOwner()->getLastName());
                 $player->setPseudo($this->getPlayerPseudo($participant));
-                $player->setOwner($participant->getBuyer()->getEmailAcheteur());
+                $player->setIdentifiantCompte($this->getPlayerIdentifiantCompte($participant));
+                $player->setOwner($emailBuyer);
+                $player->setBirthdate($this->getPlayerBirthdate($participant));
 
                 if ( !empty($participant->getBuyer()->getIdAcheteur()) && key_exists($participant->getBuyer()->getIdAcheteur(), $this->teams) ) {
                     $player->setTeam($this->teams[$participant->getBuyer()->getIdAcheteur()]);
@@ -280,7 +325,7 @@ class SynchroEventsService
                 $this->em->persist($player);
 
                 /** Construction de la table des propriétaires */
-                $this->buyers[$participant->getBuyer()->getEmailAcheteur()] = $participant->getBuyer();
+                $this->buyers[$emailBuyer] = $participant->getBuyer();
             }
         }
 
@@ -304,12 +349,13 @@ class SynchroEventsService
         foreach ($dbOwners as $dbOwner) {$dbBuyers[$dbOwner->getEmail()] = $dbOwner;}
 
         foreach ($this->buyers as $buyer) {
-            if ( !key_exists($buyer->getEmailAcheteur(), $dbBuyers) || !$dbBuyers[$buyer->getEmailAcheteur()] instanceof Owner ) {
+            $emailBuyer = $this->getBuyerEmail($buyer);
+            if ( !key_exists($emailBuyer, $dbBuyers) || !$dbBuyers[$emailBuyer] instanceof Owner ) {
                 $owner = new Owner();
-                $owner->setEmail($buyer->getEmailAcheteur());
+                $owner->setEmail($emailBuyer);
             } else {
-                $owner = $dbBuyers[$buyer->getEmailAcheteur()];
-                unset($dbBuyers[$buyer->getEmailAcheteur()]);
+                $owner = $dbBuyers[$emailBuyer];
+                unset($dbBuyers[$emailBuyer]);
             }
 
             $owner->setFirstname($buyer->getAcheteurFirstName());
@@ -365,16 +411,18 @@ class SynchroEventsService
 
         /** @var Participant $participant */
         foreach($participants as $participant) {
-            if ( !key_exists($participant->getBuyer()->getIdAcheteur(), $teams) ) {
-                $team = new WeezeventTeam();
-                $team->setId($participant->getBuyer()->getIdAcheteur());
-                $team->setName($this->getTeamName($participant));
-                $team->setEmail($participant->getBuyer()->getEmailAcheteur());
-                $team->setOwnerFirstName($participant->getBuyer()->getAcheteurFirstName());
-                $team->setOwnerLastName($participant->getBuyer()->getAcheteurLastName());
-                $teams[$participant->getBuyer()->getIdAcheteur()] = $team;
+            if ( !is_null($participant->getBuyer()->getIdAcheteur())  ) {
+                if ( !key_exists($participant->getBuyer()->getIdAcheteur(), $teams) ) {
+                    $team = new WeezeventTeam();
+                    $team->setId($participant->getBuyer()->getIdAcheteur());
+                    $team->setName($this->getTeamName($participant));
+                    $team->setEmail($this->getBuyerEmail($participant->getBuyer()));
+                    $team->setOwnerFirstName($participant->getBuyer()->getAcheteurFirstName());
+                    $team->setOwnerLastName($participant->getBuyer()->getAcheteurLastName());
+                    $teams[$participant->getBuyer()->getIdAcheteur()] = $team;
+                }
+                $teams[$participant->getBuyer()->getIdAcheteur()]->addMember($participant);
             }
-            $teams[$participant->getBuyer()->getIdAcheteur()]->addMember($participant);
         }
         return $teams;
     }
@@ -382,13 +430,18 @@ class SynchroEventsService
     /**
      * @param Tournament $tournament
      * @return Participant[]
-     * @throws GuzzleException
+     * @throws Exception
      */
     private function getParticipantsByTournament(Tournament $tournament)
     {
         if ( !key_exists($tournament->getId(), $this->participants) ) {
             $this->participants[$tournament->getId()] = $this->weezeventClient->getParticipantsByTicket($tournament->getId());
         }
+        /** @var Participant $participant */
+        foreach($this->participants[$tournament->getId()] as $key => $participant ) {
+            if ( $participant->isDeleted() ) { unset($this->participants[$tournament->getId()][$key]); }
+        }
+
         return $this->participants[$tournament->getId()];
     }
 
@@ -399,7 +452,7 @@ class SynchroEventsService
     private function getTeamName(Participant $participant)
     {
         foreach ($participant->getBuyer()->getAnswers() as $anwser) {
-            if ( $anwser->getLabel() === "Dénomination de l'équipe" ) { return $anwser->getValue(); }
+            if ( in_array($anwser->getLabel(), ["Dénomination de l'équipe", "Team Name"]) ) { return $anwser->getValue(); }
         }
         return (string)$participant->getBuyer()->getIdAcheteur();
     }
@@ -414,5 +467,43 @@ class SynchroEventsService
             if ( $anwser->getLabel() === "Pseudo" ) { return $anwser->getValue(); }
         }
         return "";
+    }
+
+    /**
+     * @param Participant $participant
+     * @return string
+     */
+    private function getPlayerIdentifiantCompte(Participant $participant)
+    {
+        foreach ($participant->getAnswers() as $anwser) {
+            if ( $anwser->getLabel() === "Identifiant compte" ) { return $anwser->getValue(); }
+        }
+        return "";
+    }
+
+    /**
+     * @param Participant $participant
+     * @return DateTime|null
+     */
+    private function getPlayerBirthdate(Participant $participant)
+    {
+        foreach ($participant->getAnswers() as $anwser) {
+            if ( in_array($anwser->getLabel(), ["Date_de_naissance"]) && preg_match('/^([\d]{2})\/([\d]{2})\/([\d]{4})$/', $anwser->getValue()) ) {
+                return DateTime::createFromFormat('d/m/Y', $anwser->getValue());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param Buyer $buyer
+     * @return string|null
+     */
+    private function getBuyerEmail(Buyer $buyer)
+    {
+        foreach ($buyer->getAnswers() as $anwser) {
+            if ( $anwser->getLabel() === "Email" ) { return $anwser->getValue(); }
+        }
+        return null;
     }
 }

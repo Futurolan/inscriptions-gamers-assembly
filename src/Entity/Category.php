@@ -81,7 +81,7 @@ class Category
     }
 
     /**
-     * @return mixed
+     * @return Event|null
      */
     public function getEvent()
     {

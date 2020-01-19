@@ -14,7 +14,13 @@
             {{ form_row(form.pseudo) }}
         </div>
         <div class="col-12">
+            {{ form_row(form.identifiantCompte) }}
+        </div>
+        <div class="col-12">
             {{ form_row(form.email) }}
+        </div>
+        <div class="col-12">
+            {{ form_row(form.birthdate) }}
         </div>
         <div class="col-12 my-3">
             <a class="btn btn-secondary" href="{{ path("playerPage", {'password': password}) }}">Cancel</a>
@@ -26,5 +32,9 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <script>
+    $(function () {
+    });
+    </script>
 {% endblock %}
 

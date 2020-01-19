@@ -233,7 +233,6 @@ class BadgeController extends AbstractController
      * @Route("/badge/import/confirm", methods={"POST"}, name="confirmImportBadgesPage")
      * @param Request $request
      * @return Response
-     * @throws GuzzleException
      */
     public function confirmImportBadges(Request $request)
     {
@@ -416,13 +415,4 @@ class BadgeController extends AbstractController
         $participant->setForm($form);
         return $participant;
     }
-
-
-//$datas = '{"participants":[{"id_evenement":'.$app['weezevent.id_event'].',"barcode_id":'.$barcode_participant.'}],"return_ticket_url":1}';
-//$ticket = json_decode($guzzle->request('PATCH', 'https://api.weezevent.com/v3/participants?api_key='.$app['weezevent.api_key'].'&access_token='.$app['weezevent.access_token'].'&data='.$datas, array('form_params' => array('data' => $datas), 'headers' => array('Content-type' => 'application/x-www-form-urlencoded', 'Charset' => 'utf-8')))->getBody());
-//$url = $ticket->participants[0]->ticket_url;
-//
-//header('Location: '.$url);
-
-
 }

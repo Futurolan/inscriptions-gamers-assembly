@@ -61,6 +61,12 @@ class Tournament
     private $dateEnd;
 
     /**
+     * @var array|null
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $customFields;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Category", inversedBy="tournaments")
      * @ORM\JoinColumn(onDelete="CASCADE")
      */
@@ -213,5 +219,21 @@ class Tournament
     public function getTeams(): Collection
     {
         return $this->teams;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getCustomFields(): ?array
+    {
+        return $this->customFields;
+    }
+
+    /**
+     * @param array|null $customFields
+     */
+    public function setCustomFields(?array $customFields): void
+    {
+        $this->customFields = $customFields;
     }
 }

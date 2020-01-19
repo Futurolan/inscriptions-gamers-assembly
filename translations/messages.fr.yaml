@@ -1,7 +1,10 @@
 interface_description_1: Cette interface vous permet de modifier les informations des billets dont vous êtes l'acheteur. Il vous suffit de cliquer sur un joueur pour mettre à jour ses informations.
 description_application_1: Ce site vous permet de gérer vos billets pour la Gamers Assembly. Via cette interface, vous pouvez modifier les informations des billets que vous avez acheté. Pour y accéder, veuillez utiliser le lien qui vous a été envoyé par email suite à votre inscription.
+error_ticket_modification_1: Une erreur est survenue lors de la modification du badge, veuillez réessayer ultérieurement.
+success_ticket_modification_1: Badge modifié avec succès !
 Joueur: Joueur
 Pseudo: Pseudo
+Identifiant Compte: Identifiant Compte
 Équipe: Équipe
 Tournoi: Tournoi
 Déconnexion: Déconnexion
@@ -10,3 +13,7 @@ Modify Player: Modifier un joueur
 Firstname: Prénom
 Lastname: Nom
 Email: Adresse mail
+Birth date: Date de naissance
+Year: Année
+Month: Mois
+Day: Jour
